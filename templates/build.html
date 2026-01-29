@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h1>{{ build.report_name or build.job_name or 'Build report' }}</h1>
+      <p class="meta">Job: {{ build.job_name or 'n/a' }} · Build: {{ build.build_number or build_id }}</p>
+    </div>
+    <div class="actions">
+      <a class="button ghost" href="{{ url_for('index') }}">Back</a>
+      <a class="button" href="{{ url_for('report_index', build_id=build_id) }}">Open report</a>
+    </div>
+  </div>
+
+  <div class="details">
+    <div><strong>Branch:</strong> {{ build.branch or 'n/a' }}</div>
+    <div><strong>Commit:</strong> {{ build.commit or 'n/a' }}</div>
+    <div><strong>Created:</strong> {{ build.created_at or 'n/a' }}</div>
+    {% if build.build_url %}
+    <div><strong>Jenkins:</strong> <a href="{{ build.build_url }}" target="_blank" rel="noopener">{{ build.build_url }}</a></div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

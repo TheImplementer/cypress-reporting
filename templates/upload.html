@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <h1>Upload results</h1>
+  <form class="form" method="post" enctype="multipart/form-data">
+    <label>
+      Cucumber JSON
+      <input type="file" name="cucumber_json" accept="application/json" required />
+    </label>
+    <label>
+      Job name
+      <input type="text" name="job_name" placeholder="ui-tests" />
+    </label>
+    <label>
+      Build number
+      <input type="text" name="build_number" placeholder="123" />
+    </label>
+    <label>
+      Build URL
+      <input type="url" name="build_url" placeholder="https://jenkins/job/..." />
+    </label>
+    <label>
+      Branch
+      <input type="text" name="branch" placeholder="main" />
+    </label>
+    <label>
+      Commit
+      <input type="text" name="commit" placeholder="abc123" />
+    </label>
+    <label>
+      Report name
+      <input type="text" name="report_name" placeholder="Cypress Report" />
+    </label>
+    <button class="button" type="submit">Upload & Generate</button>
+  </form>
+</section>
+{% endblock %}

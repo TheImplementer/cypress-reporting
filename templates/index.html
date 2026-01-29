@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <div class="panel-header">
+    <div>
+      <h1>Builds</h1>
+      <p class="meta">Centralized view of Cypress runs across Jenkins pipelines.</p>
+    </div>
+  </div>
+  {% if builds %}
+  <div class="table">
+    <div class="table-row table-header">
+      <div class="status-head">Status</div>
+      <div>Job</div>
+      <div>Build</div>
+      <div>Branch</div>
+      <div>Commit</div>
+      <div>Created</div>
+      <div>Links</div>
+    </div>
+    {% for build in builds %}
+    <div class="table-row">
+      <div class="status-cell">
+        <span class="status-dot {{ build.overall_status or 'unknown' }}"></span>
+        <span class="status-label">{{ build.overall_status or 'unknown' }}</span>
+      </div>
+      <div class="job-cell">
+        <div class="job-name">{{ build.job_name or 'Unnamed job' }}</div>
+        <div class="job-sub">{{ build.report_name or '' }}</div>
+      </div>
+      <div class="build-cell">
+        <span class="pill">#{{ build.build_number or build.build_id }}</span>
+      </div>
+      <div class="meta">{{ build.branch or 'n/a' }}</div>
+      <div class="meta">{{ build.commit or 'n/a' }}</div>
+      <div class="meta">{{ build.display_created_at or build.created_at or 'n/a' }}</div>
+      <div class="actions">
+        <a class="link" href="{{ url_for('report_index', build_id=build.build_id) }}">Report</a>
+        {% if build.build_url %}
+        <a class="link" href="{{ build.build_url }}" target="_blank" rel="noopener">Jenkins</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>No builds uploaded yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

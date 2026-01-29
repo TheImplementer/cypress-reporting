@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel report-hero">
+  <div class="panel-header">
+    <div>
+      <p class="eyebrow">Run report</p>
+      <h1>{{ build.report_name or build.job_name or 'Cypress Report' }}</h1>
+      <div class="meta-row">
+        <span class="meta-chip">Job: {{ build.job_name or 'n/a' }}</span>
+        <span class="meta-chip">Build: {{ build.build_number or build_id }}</span>
+        <span class="meta-chip">Created: {{ build.display_created_at or build.created_at or 'n/a' }}</span>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="button ghost" href="{{ url_for('index') }}">Back</a>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="summary-label">Features</div>
+      <div class="summary-value">{{ summary.features }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Scenarios</div>
+      <div class="summary-value">{{ summary.scenarios }}</div>
+    </div>
+    <div class="summary-card passed">
+      <div class="summary-label">Passed</div>
+      <div class="summary-value">{{ summary.passed }}</div>
+    </div>
+    <div class="summary-card failed">
+      <div class="summary-label">Failed</div>
+      <div class="summary-value">{{ summary.failed }}</div>
+    </div>
+    <div class="summary-card skipped">
+      <div class="summary-label">Skipped</div>
+      <div class="summary-value">{{ summary.skipped }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Steps</div>
+      <div class="summary-value">{{ summary.steps }}</div>
+    </div>
+  </div>
+</section>
+
+<section class="panel report-panel">
+  <div class="panel-header">
+    <h2>Feature coverage</h2>
+    <span class="meta">Scenario outcomes by feature.</span>
+  </div>
+  <div class="feature-table">
+    {% for feature in features %}
+    <div class="feature-block">
+      <div class="feature-row">
+        <div>
+          <div class="feature-name">{{ feature.name }}</div>
+          {% if feature.description %}
+          <div class="meta">{{ feature.description }}</div>
+          {% endif %}
+          {% if feature.tags %}
+          <div class="tags">
+            {% for tag in feature.tags %}
+            <span class="tag-pill">{{ tag }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        <div class="scenario-count">
+          {{ feature.scenarios | length }} scenarios
+        </div>
+        <div class="scenario-statuses">
+          {% for scenario in feature.scenarios %}
+          <span class="status-pill {{ scenario.status }}">{{ scenario.status }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <details class="feature-detail">
+        <summary>View scenarios</summary>
+        <div class="scenario-detail-list">
+          {% for scenario in feature.scenarios %}
+          <div class="scenario-detail {{ scenario.status }}">
+            <div class="scenario-head">
+              <span class="status-pill {{ scenario.status }}">{{ scenario.status }}</span>
+              <span class="scenario-name">{{ scenario.name }}</span>
+              <span class="scenario-steps">{{ scenario.steps | length }} steps</span>
+            </div>
+            <ul class="step-list">
+              {% for step in scenario.steps %}
+              <li class="step {{ step.result.status if step.result is defined and step.result.status is defined else 'unknown' }}">
+                <span class="step-status">{{ step.result.status if step.result is defined and step.result.status is defined else 'unknown' }}</span>
+                <span class="step-text">{{ step.keyword }}{{ step.name }}</span>
+                {% if step.result is defined and step.result.error_message is defined %}
+                <pre class="step-error">{{ step.result.error_message }}</pre>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
