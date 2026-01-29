@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cypress-reporting
+  labels:
+    app: cypress-reporting
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cypress-reporting
+  template:
+    metadata:
+      labels:
+        app: cypress-reporting
+    spec:
+      containers:
+        - name: app
+          image: cypress-reporting:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          env:
+            - name: PORT
+              value: "5000"
+            - name: RESULTS_DATA_DIR
+              value: "/app/data"
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: cypress-reporting-data

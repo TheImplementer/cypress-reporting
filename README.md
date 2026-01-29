@@ -46,6 +46,19 @@ docker build -t cypress-results-hub .
 docker run -p 5000:5000 -v $PWD/data:/app/data cypress-results-hub
 ```
 
+## Kubernetes
+
+Apply manifests (adjust image + host as needed):
+
+```bash
+kubectl apply -k k8s
+```
+
+Defaults:
+- Image: `cypress-reporting:latest` (edit `k8s/deployment.yaml`)
+- Ingress host: `cypress-reporting.local` (edit `k8s/ingress.yaml`)
+- PVC size: `5Gi` (edit `k8s/pvc.yaml`)
+
 ## API
 
 - `GET /api/builds`
