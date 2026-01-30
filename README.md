@@ -65,7 +65,4 @@ Defaults:
 - `GET /api/builds/<build_id>`
 - `POST /upload` (form or JSON)
 
-Data is stored in `data/<build_id>/` with:
-- `cucumber.json`
-- `metadata.json`
-- rendered on demand by the Flask UI
+Data is stored in a SQLite database at `data/results.db` (configurable via `RESULTS_DB_PATH`).

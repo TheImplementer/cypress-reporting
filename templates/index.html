@@ -32,7 +32,7 @@
         <span class="pill">#{{ build.build_number or build.build_id }}</span>
       </div>
       <div class="meta">{{ build.branch or 'n/a' }}</div>
-      <div class="meta">{{ build.commit or 'n/a' }}</div>
+      <div class="meta">{{ build.commit_sha or 'n/a' }}</div>
       <div class="meta">{{ build.display_created_at or build.created_at or 'n/a' }}</div>
       <div class="actions">
         <a class="link" href="{{ url_for('report_index', build_id=build.build_id) }}">Report</a>

@@ -8,6 +8,7 @@
       <div class="meta-row">
         <span class="meta-chip">Job: {{ build.job_name or 'n/a' }}</span>
         <span class="meta-chip">Build: {{ build.build_number or build_id }}</span>
+        <span class="meta-chip">Commit: {{ build.commit_sha or 'n/a' }}</span>
         <span class="meta-chip">Created: {{ build.display_created_at or build.created_at or 'n/a' }}</span>
       </div>
     </div>
@@ -51,8 +52,8 @@
   </div>
   <div class="feature-table">
     {% for feature in features %}
-    <div class="feature-block">
-      <div class="feature-row">
+    <details class="feature-block">
+      <summary class="feature-row">
         <div>
           <div class="feature-name">{{ feature.name }}</div>
           {% if feature.description %}
@@ -67,40 +68,50 @@
           {% endif %}
         </div>
         <div class="scenario-count">
-          {{ feature.scenarios | length }} scenarios
+          <div class="count-line">
+            <span class="count-label">Total</span>
+            <span class="count-value">{{ feature.scenarios | length }}</span>
+          </div>
+          <div class="count-line">
+            <span class="count-label">Passed</span>
+            <span class="count-value">{{ feature.counts.passed }}</span>
+          </div>
+          <div class="count-line">
+            <span class="count-label">Failed</span>
+            <span class="count-value">{{ feature.counts.failed }}</span>
+          </div>
+          <div class="count-line">
+            <span class="count-label">Skipped</span>
+            <span class="count-value">{{ feature.counts.skipped }}</span>
+          </div>
         </div>
         <div class="scenario-statuses">
-          {% for scenario in feature.scenarios %}
-          <span class="status-pill {{ scenario.status }}">{{ scenario.status }}</span>
-          {% endfor %}
+          <div class="progress">
+            <div class="progress-segment passed" style="width: {{ feature.percent_passed }}%"></div>
+            <div class="progress-segment failed" style="width: {{ feature.percent_failed }}%"></div>
+            <div class="progress-segment skipped" style="width: {{ feature.percent_skipped }}%"></div>
+          </div>
+          <div class="progress-labels">
+            <span>{{ feature.percent_passed }}% pass</span>
+            <span>{{ feature.percent_failed }}% fail</span>
+            <span>{{ feature.percent_skipped }}% skip</span>
+          </div>
         </div>
-      </div>
-      <details class="feature-detail">
-        <summary>View scenarios</summary>
+        <span class="feature-toggle">▾</span>
+      </summary>
+      <div class="feature-detail">
         <div class="scenario-detail-list">
           {% for scenario in feature.scenarios %}
           <div class="scenario-detail {{ scenario.status }}">
             <div class="scenario-head">
               <span class="status-pill {{ scenario.status }}">{{ scenario.status }}</span>
               <span class="scenario-name">{{ scenario.name }}</span>
-              <span class="scenario-steps">{{ scenario.steps | length }} steps</span>
             </div>
-            <ul class="step-list">
-              {% for step in scenario.steps %}
-              <li class="step {{ step.result.status if step.result is defined and step.result.status is defined else 'unknown' }}">
-                <span class="step-status">{{ step.result.status if step.result is defined and step.result.status is defined else 'unknown' }}</span>
-                <span class="step-text">{{ step.keyword }}{{ step.name }}</span>
-                {% if step.result is defined and step.result.error_message is defined %}
-                <pre class="step-error">{{ step.result.error_message }}</pre>
-                {% endif %}
-              </li>
-              {% endfor %}
-            </ul>
           </div>
           {% endfor %}
         </div>
-      </details>
-    </div>
+      </div>
+    </details>
     {% endfor %}
   </div>
 </section>

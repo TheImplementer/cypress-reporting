@@ -335,18 +335,26 @@ body {
 }
 
 .feature-block {
-  display: grid;
-  gap: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.feature-block summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.feature-block summary::-webkit-details-marker {
+  display: none;
 }
 
 .feature-row {
   display: grid;
-  grid-template-columns: 1.6fr 0.6fr 1.4fr;
+  grid-template-columns: 1.6fr 0.6fr 1.4fr 24px;
   gap: 12px;
   padding: 14px;
-  border-radius: 12px;
-  border: 1px solid var(--panel-border);
-  background: #ffffff;
   align-items: center;
 }
 
@@ -356,8 +364,10 @@ body {
 }
 
 .scenario-count {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--muted);
+  display: grid;
+  gap: 4px;
 }
 
 .scenario-statuses {
@@ -365,6 +375,8 @@ body {
   flex-wrap: wrap;
   gap: 6px;
   justify-content: flex-end;
+  align-items: flex-end;
+  flex-direction: column;
 }
 
 .status-pill {
@@ -392,45 +404,89 @@ body {
   color: #92400e;
 }
 
-.feature-detail {
-  border-radius: 12px;
-  border: 1px solid var(--panel-border);
-  background: #ffffff;
-  padding: 10px 14px;
+.count-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.feature-detail summary {
-  cursor: pointer;
+.count-label {
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+}
+
+.count-value {
   font-weight: 600;
   color: var(--ink);
-  list-style: none;
 }
 
-.feature-detail summary::-webkit-details-marker {
-  display: none;
+.progress {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+  display: flex;
 }
 
-.feature-detail summary::after {
-  content: "▾";
-  float: right;
+.progress-segment {
+  height: 100%;
+}
+
+.progress-segment.passed {
+  background: #22c55e;
+}
+
+.progress-segment.failed {
+  background: #ef4444;
+}
+
+.progress-segment.skipped {
+  background: #f59e0b;
+}
+
+.progress-labels {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  font-size: 0.7rem;
   color: var(--muted);
 }
 
-.feature-detail[open] summary::after {
-  content: "▴";
+.feature-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #eef2f7;
+  color: var(--muted);
+  font-size: 0.8rem;
+  transition: transform 0.15s ease;
+}
+
+.feature-block[open] .feature-toggle {
+  transform: rotate(180deg);
+}
+
+.feature-detail {
+  padding: 12px 14px 16px;
+  border-top: 1px solid var(--panel-border);
+  background: #f8fafc;
 }
 
 .scenario-detail-list {
   display: grid;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 8px;
 }
 
 .scenario-detail {
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid var(--panel-border);
-  padding: 12px;
-  background: #f8fafc;
+  padding: 10px 12px;
+  background: #ffffff;
 }
 
 .scenario-detail.failed {
@@ -455,56 +511,6 @@ body {
   color: var(--ink);
 }
 
-.scenario-steps {
-  font-size: 0.75rem;
-  color: var(--muted);
-}
-
-.step-list {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0 0;
-  display: grid;
-  gap: 6px;
-}
-
-.step {
-  display: grid;
-  gap: 6px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-}
-
-.step.failed {
-  border-color: #f2b8b8;
-}
-
-.step.skipped {
-  border-color: #f5d6a6;
-}
-
-.step-status {
-  text-transform: uppercase;
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-
-.step-text {
-  font-size: 0.85rem;
-  color: var(--ink);
-}
-
-.step-error {
-  background: #fff1f2;
-  color: #991b1b;
-  padding: 8px;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  white-space: pre-wrap;
-}
 
 .feature {
   padding: 18px 0;
@@ -612,6 +618,7 @@ body {
 
   .scenario-statuses {
     justify-content: flex-start;
+    align-items: flex-start;
   }
 
   .scenario-head {
