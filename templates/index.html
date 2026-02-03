@@ -1,5 +1,67 @@
 {% extends "base.html" %}
 {% block content %}
+<section class="panel stats-panel">
+  <div class="panel-header">
+    <h2>Quality pulse</h2>
+    <form class="stats-filter" method="get">
+      <input type="hidden" name="page" value="{{ page }}" />
+      <input type="hidden" name="per_page" value="{{ per_page }}" />
+      <label>
+        <span class="meta">Window</span>
+        <select name="stats_days" onchange="this.form.submit()">
+          {% for option in [7, 14, 30, 90] %}
+          <option value="{{ option }}" {% if stats_days == option %}selected{% endif %}>Last {{ option }} days</option>
+          {% endfor %}
+        </select>
+      </label>
+    </form>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-title">Daily failure rate (7d)</div>
+      <div class="stat-list">
+        {% for day in daily %}
+        <div class="stat-row">
+          <span>{{ day.day }}</span>
+          <div class="mini-bar">
+            <div class="mini-fill" style="width: {{ day.rate }}%"></div>
+          </div>
+          <span>{{ day.rate }}%</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">Top failing features</div>
+      <div class="stat-list">
+        {% for feature in top_features %}
+        <div class="stat-row">
+          <span class="stat-name">{{ feature.name }}</span>
+          <span>{{ feature.failed }}/{{ feature.total }}</span>
+          <span>{{ feature.rate }}%</span>
+        </div>
+        {% else %}
+        <div class="meta">No data yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-title">Flaky scenarios</div>
+      <div class="stat-list">
+        {% for scenario in top_scenarios %}
+        <div class="stat-row">
+          <span class="stat-name">{{ scenario.name }}</span>
+          <span>{{ scenario.failed }}/{{ scenario.total }}</span>
+          <span>{{ scenario.rate }}%</span>
+        </div>
+        {% else %}
+        <div class="meta">No data yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="panel">
   <div class="panel-header">
     <div>
@@ -42,6 +104,15 @@
       </div>
     </div>
     {% endfor %}
+  </div>
+  <div class="pagination">
+    {% if page > 1 %}
+    <a class="button ghost" href="{{ url_for('index', page=page-1, per_page=per_page) }}">Previous</a>
+    {% endif %}
+    <span class="meta">Page {{ page }} of {{ total_pages }}</span>
+    {% if page < total_pages %}
+    <a class="button ghost" href="{{ url_for('index', page=page+1, per_page=per_page) }}">Next</a>
+    {% endif %}
   </div>
   {% else %}
   <p>No builds uploaded yet.</p>

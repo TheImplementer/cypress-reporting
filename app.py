@@ -2,7 +2,7 @@ import json
 import os
 import re
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from uuid import uuid4
 
@@ -65,15 +65,19 @@ def _get_db():
     return conn
 
 
-def _list_builds():
+def _list_builds(page, per_page):
+    offset = (page - 1) * per_page
     with _get_db() as conn:
+        total = conn.execute("SELECT COUNT(1) AS count FROM builds").fetchone()["count"]
         rows = conn.execute(
             """
             SELECT build_id, job_name, build_number, build_url, branch, commit_sha,
                    report_name, overall_status, created_at
             FROM builds
             ORDER BY created_at DESC
-            """
+            LIMIT ? OFFSET ?
+            """,
+            (per_page, offset),
         ).fetchall()
 
     builds = []
@@ -88,7 +92,98 @@ def _list_builds():
         except ValueError:
             metadata["display_created_at"] = created_at
         builds.append(metadata)
-    return builds
+    total_pages = max((total + per_page - 1) // per_page, 1)
+    return builds, total, total_pages
+
+
+def _daily_failure_rate(days):
+    cutoff = datetime.utcnow() - timedelta(days=days - 1)
+    cutoff = cutoff.replace(microsecond=0)
+    cutoff_iso = cutoff.isoformat()
+    with _get_db() as conn:
+        rows = conn.execute(
+            """
+            SELECT created_at, overall_status
+            FROM builds
+            WHERE created_at >= ?
+            ORDER BY created_at DESC
+            """,
+            (cutoff_iso,),
+        ).fetchall()
+
+    buckets = {}
+    for row in rows:
+        created_at = row["created_at"] or ""
+        try:
+            day_key = datetime.fromisoformat(created_at).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+        if day_key not in buckets:
+            buckets[day_key] = {"total": 0, "failed": 0}
+        buckets[day_key]["total"] += 1
+        if row["overall_status"] == "failed":
+            buckets[day_key]["failed"] += 1
+
+    days_sorted = sorted(buckets.keys(), reverse=True)[:days]
+    result = []
+    for day in reversed(days_sorted):
+        total = buckets[day]["total"]
+        failed = buckets[day]["failed"]
+        rate = round((failed / total) * 100) if total else 0
+        result.append({"day": day, "failed": failed, "total": total, "rate": rate})
+    return result
+
+
+def _flaky_stats(limit, days):
+    cutoff = datetime.utcnow() - timedelta(days=days - 1)
+    cutoff = cutoff.replace(microsecond=0)
+    cutoff_iso = cutoff.isoformat()
+    with _get_db() as conn:
+        rows = conn.execute(
+            "SELECT cucumber_json FROM builds WHERE created_at >= ?",
+            (cutoff_iso,),
+        ).fetchall()
+
+    feature_counts = {}
+    scenario_counts = {}
+
+    for row in rows:
+        try:
+            data = json.loads(row["cucumber_json"])
+        except (TypeError, ValueError):
+            continue
+        for feature in data:
+            feature_name = feature.get("name", "Unnamed feature")
+            elements = feature.get("elements", []) or []
+            for element in elements:
+                scenario_name = element.get("name", "Unnamed scenario")
+                steps = element.get("steps", []) or []
+                status = _scenario_status(steps)
+                feature_key = feature_name
+                scenario_key = "{} :: {}".format(feature_name, scenario_name)
+
+                if feature_key not in feature_counts:
+                    feature_counts[feature_key] = {"total": 0, "failed": 0}
+                if scenario_key not in scenario_counts:
+                    scenario_counts[scenario_key] = {"total": 0, "failed": 0}
+
+                feature_counts[feature_key]["total"] += 1
+                scenario_counts[scenario_key]["total"] += 1
+                if status == "failed":
+                    feature_counts[feature_key]["failed"] += 1
+                    scenario_counts[scenario_key]["failed"] += 1
+
+    def to_ranked(items):
+        ranked = []
+        for name, stats in items.items():
+            total = stats["total"]
+            failed = stats["failed"]
+            rate = round((failed / total) * 100) if total else 0
+            ranked.append({"name": name, "failed": failed, "total": total, "rate": rate})
+        ranked.sort(key=lambda item: (item["rate"], item["failed"]), reverse=True)
+        return ranked[:limit]
+
+    return to_ranked(feature_counts), to_ranked(scenario_counts)
 
 
 def _load_cucumber_from_db(build_id):
@@ -176,7 +271,26 @@ def _summarize_report(cucumber_json):
 
 @app.route("/")
 def index():
-    return render_template("index.html", builds=_list_builds())
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 15))
+    stats_days = int(request.args.get("stats_days", 7))
+    if stats_days not in (7, 14, 30, 90):
+        stats_days = 7
+    builds, total, total_pages = _list_builds(page, per_page)
+    daily = _daily_failure_rate(stats_days)
+    top_features, top_scenarios = _flaky_stats(5, stats_days)
+    return render_template(
+        "index.html",
+        builds=builds,
+        page=page,
+        per_page=per_page,
+        total=total,
+        total_pages=total_pages,
+        stats_days=stats_days,
+        daily=daily,
+        top_features=top_features,
+        top_scenarios=top_scenarios,
+    )
 
 
 @app.route("/upload", methods=["GET", "POST"])
@@ -285,7 +399,10 @@ def report_assets(build_id, filename):
 
 @app.route("/api/builds")
 def api_builds():
-    return jsonify(_list_builds())
+    page = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 15))
+    builds, total, total_pages = _list_builds(page, per_page)
+    return jsonify({"items": builds, "total": total, "page": page, "total_pages": total_pages})
 
 
 @app.route("/api/builds/<build_id>")
