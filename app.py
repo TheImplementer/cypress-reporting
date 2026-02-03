@@ -273,12 +273,7 @@ def _summarize_report(cucumber_json):
 def index():
     page = int(request.args.get("page", 1))
     per_page = int(request.args.get("per_page", 15))
-    stats_days = int(request.args.get("stats_days", 7))
-    if stats_days not in (7, 14, 30, 90):
-        stats_days = 7
     builds, total, total_pages = _list_builds(page, per_page)
-    daily = _daily_failure_rate(stats_days)
-    top_features, top_scenarios = _flaky_stats(5, stats_days)
     return render_template(
         "index.html",
         builds=builds,
@@ -286,6 +281,18 @@ def index():
         per_page=per_page,
         total=total,
         total_pages=total_pages,
+    )
+
+
+@app.route("/stats")
+def stats():
+    stats_days = int(request.args.get("stats_days", 7))
+    if stats_days not in (7, 14, 30, 90):
+        stats_days = 7
+    daily = _daily_failure_rate(stats_days)
+    top_features, top_scenarios = _flaky_stats(5, stats_days)
+    return render_template(
+        "stats.html",
         stats_days=stats_days,
         daily=daily,
         top_features=top_features,
