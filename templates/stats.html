@@ -15,6 +15,14 @@
           {% endfor %}
         </select>
       </label>
+      <label>
+        <span class="meta">Builds</span>
+        <select name="stats_builds" onchange="this.form.submit()">
+          {% for option in [100, 200, 500, 1000] %}
+          <option value="{{ option }}" {% if stats_builds == option %}selected{% endif %}>Last {{ option }}</option>
+          {% endfor %}
+        </select>
+      </label>
     </form>
   </div>
   <div class="stats-grid">

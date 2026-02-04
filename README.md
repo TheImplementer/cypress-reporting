@@ -66,3 +66,11 @@ Defaults:
 - `POST /upload` (form or JSON)
 
 Data is stored in a SQLite database at `data/results.db` (configurable via `RESULTS_DB_PATH`).
+If the database still contains legacy `cucumber_json` rows, run:
+
+```bash
+python migrate_db.py
+```
+
+This writes a new database to `data/results_v2.db` (override with `RESULTS_DB_PATH_NEW`)
+and leaves the original untouched. Point the app at the new file using `RESULTS_DB_PATH`.
